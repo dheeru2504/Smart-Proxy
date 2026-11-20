@@ -1,0 +1,99 @@
+server:
+  port: 8080
+  shutdown: graceful
+
+spring:
+  application:
+    name: smart-proxy
+  profiles:
+    active: dev
+  lifecycle:
+    timeout-per-shutdown-phase: 15s
+
+management:
+  server:
+    port: 8081
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,env
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+        smartproxy.gateway.requests: true
+
+# ==============================================================================
+# Smart-Proxy Custom Gateway Configuration Conventions
+# ==============================================================================
+smartproxy:
+  gateway:
+    enabled: true
+    port: 8080
+    admin-port: 8081
+    max-header-size-bytes: 16384
+    max-body-size-bytes: 10485760 # 10MB
+    connect-timeout-ms: 3000
+    response-timeout-ms: 10000
+    pool:
+      max-connections: 1000
+      max-idle-time-ms: 30000
+      max-life-time-ms: 60000
+      acquire-timeout-ms: 2000
+
+  loadbalancer:
+    default-strategy: ROUND_ROBIN # ROUND_ROBIN, WEIGHTED_ROUND_ROBIN, LEAST_CONNECTIONS, IP_HASH
+    health-check:
+      enabled: true
+      interval-seconds: 10
+      timeout-ms: 2000
+      healthy-threshold: 2
+      unhealthy-threshold: 3
+      passive-enabled: true
+      passive-failure-threshold: 5
+      passive-window-seconds: 10
+
+  ratelimiter:
+    enabled: true
+    default-algorithm: TOKEN_BUCKET # TOKEN_BUCKET, SLIDING_WINDOW_LOG, LEAKY_BUCKET
+    redis-key-prefix: "smartproxy:rl:"
+    fallback-mode: FAIL_OPEN # FAIL_OPEN, FAIL_CLOSED
+
+  circuitbreaker:
+    enabled: true
+    sliding-window-size: 20
+    minimum-number-of-calls: 10
+    failure-rate-threshold-percentage: 50.0
+    slow-call-rate-threshold-percentage: 50.0
+    slow-call-duration-threshold-ms: 2000
+    wait-duration-in-open-state-sec: 15
+    permitted-calls-in-half-open-state: 5
+
+  security:
+    jwt:
+      secret: "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970" # 256-bit dev secret
+      expiration-ms: 86400000 # 24h
+    api-key:
+      header-name: "X-API-Key"
+      cache-ttl-minutes: 10
+    firewall:
+      ip-filtering-enabled: true
+    admin:
+      enabled: true
+      header-name: "X-Admin-Key"
+      admin-key: "admin-super-secret-key-change-in-prod"
+
+  telemetry:
+    enabled: true
+    exchange-name: "smartproxy.telemetry.exchange"
+    access-log-queue: "smartproxy.access.logs"
+    alerts-queue: "smartproxy.security.alerts"
+    metrics-queue: "smartproxy.metrics.stream"
+    sample-rate: 1.0

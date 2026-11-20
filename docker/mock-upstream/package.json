@@ -1,0 +1,9 @@
+{
+  "name": "smart-proxy-mock-upstream",
+  "version": "1.0.0",
+  "description": "Mock HTTP Upstream Server for Smart-Proxy Load Balancer Testing",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

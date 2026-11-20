@@ -1,0 +1,83 @@
+# Target & Build Output
+target/
+build/
+dist/
+out/
+bin/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Node / Frontend Dependencies & Build Output
+node_modules/
+**/node_modules/
+**/dist/
+.vite/
+**/.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.eslintcache
+
+# Environment & Local Configuration
+.env
+.env.local
+.env.*.local
+*.env
+application-local.yml
+application-local.properties
+
+# Logs
+*.log
+logs/
+
+# Java / JVM Crash Dumps
+*.hprof
+hs_err_pid*
+replay_pid*
+
+# OS Generated Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Thumbs.db:encryptable
+Desktop.ini
+$RECYCLE.BIN/
+
+# IDE & Editor Files
+# STS / Eclipse
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# VS Code
+.vscode/
+.history/
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# Help File (optional)
+HELP.md
+

@@ -1,0 +1,111 @@
+version: '3.8'
+
+services:
+  # 1. PostgreSQL - Primary Relational Store for Routes, Keys & Policies
+  postgres:
+    image: postgres:16-alpine
+    container_name: smartproxy-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: smartproxydb
+      POSTGRES_USER: smartproxy
+      POSTGRES_PASSWORD: smartproxy_dev_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smartproxy -d smartproxydb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - smartproxy-network
+
+  # 2. Redis - Distributed Rate Limiting & Fast State
+  redis:
+    image: redis:7.2-alpine
+    container_name: smartproxy-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "smartproxy_redis_secret"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "smartproxy_redis_secret", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - smartproxy-network
+
+  # 3. RabbitMQ - Telemetry & Event Streaming Bus
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: smartproxy-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: smartproxy
+      RABBITMQ_DEFAULT_PASS: smartproxy_rabbit_secret
+    ports:
+      - "5672:5672"    # AMQP protocol
+      - "15672:15672"  # Management Web UI
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    networks:
+      - smartproxy-network
+
+  # 4. Mock Upstream Backend Instance 1
+  mock-upstream-1:
+    build:
+      context: ./docker/mock-upstream
+      dockerfile: Dockerfile
+    container_name: smartproxy-mock-upstream-1
+    environment:
+      PORT: 8091
+      INSTANCE_ID: upstream-node-1
+    ports:
+      - "8091:8091"
+    networks:
+      - smartproxy-network
+
+  # 5. Mock Upstream Backend Instance 2
+  mock-upstream-2:
+    build:
+      context: ./docker/mock-upstream
+      dockerfile: Dockerfile
+    container_name: smartproxy-mock-upstream-2
+    environment:
+      PORT: 8092
+      INSTANCE_ID: upstream-node-2
+    ports:
+      - "8092:8092"
+    networks:
+      - smartproxy-network
+
+  # 6. Mock Upstream Backend Instance 3
+  mock-upstream-3:
+    build:
+      context: ./docker/mock-upstream
+      dockerfile: Dockerfile
+    container_name: smartproxy-mock-upstream-3
+    environment:
+      PORT: 8093
+      INSTANCE_ID: upstream-node-3
+    ports:
+      - "8093:8093"
+    networks:
+      - smartproxy-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  smartproxy-network:
+    driver: bridge

@@ -1,0 +1,37 @@
+spring:
+  datasource:
+    url: ${DATABASE_JDBC_URL:jdbc:postgresql://postgres:5432/smartproxydb}
+    username: ${DATABASE_USERNAME:smartproxy}
+    password: ${DATABASE_PASSWORD:smartproxy_secret}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 1000ms
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:rabbitmq}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:smartproxy}
+    password: ${RABBITMQ_PASSWORD:smartproxy_rabbit_secret}
+
+logging:
+  level:
+    root: WARN
+    com.smartproxy: INFO
